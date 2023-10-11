@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form th:action="@{/department/save}" method="post" th:object="${department}">
+        <!-- ID -->
+        <input th:field="*{id}" name="id" id="id" type="text" hidden>
+        <!-- NAME -->
+        <input th:field="*{name}" name="name" id="name" type="text">
+        <!-- REGION DROPDOWN-->
+        <select th:field="*{region}" name="region" id="region"> <!-- th field diambil dari department.java line 23 -->
+            <option value="">Select Region</option>
+            <option 
+                th:each="region : ${regions}" 
+                th:value="${region.id}" 
+                th:selected="${region.id}" 
+                th:text="${region.name}">
+            </option>
+        </select>
+        <!-- ACTION SUBMIT -->
+        <button type="submit">SUBMIT</button>
+    </form>
+</body>
+</html>
