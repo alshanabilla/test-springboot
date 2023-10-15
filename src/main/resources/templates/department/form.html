@@ -13,13 +13,13 @@
         <input th:field="*{name}" name="name" id="name" type="text">
         <!-- REGION DROPDOWN-->
         <select th:field="*{region}" name="region" id="region"> <!-- th field diambil dari department.java line 23 -->
-            <option value="">Select Region</option>
+            <!-- <option value="">Select Region</option>
             <option 
                 th:each="region : ${regions}" 
                 th:value="${region.id}" 
                 th:selected="${region.id}" 
                 th:text="${region.name}">
-            </option>
+            </option> -->
         </select>
         <!-- ACTION SUBMIT -->
         <button type="submit">SUBMIT</button>

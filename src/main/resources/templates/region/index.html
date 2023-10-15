@@ -3,14 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css" />
     <title>Document</title>
 </head>
 <body>
-    <div>
-        <a th:href="@{/region/form}">CREATE</a>
-        <table>
+    <div class="container">
+        <a th:href="@{/region/form}" class="btn btn-primary" style="margin: 10px 0px;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            CREATE
+        </a>
+        
+        <table id="myTable" class="table table-hover">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>ID</th>
                     <th>NAME</th>
                     <th>ACTION</th>
@@ -20,16 +26,167 @@
                 <tr th:each="region : ${regions}">
                     <td th:text="${region.id}"></td>
                     <td th:text="${region.name}"></td>
-                    <td><a th:href="@{region/form/{id} (id = ${region.id})}">EDIT</a> | 
+                    <td>
+                        <a th:href="@{region/form/{id} (id = ${region.id})}" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            EDIT
+                        </a> | 
 
                         <form th:action="@{region/delete/{id} (id = ${region.id})}" method="post">
-                            <button type="submit">DELETE</button>
+                            <button type="submit" class="btn btn-danger">DELETE</button>
                         </form>
-                    </td>
-                    
+                    </td> 
                 </tr>
             </tbody>
         </table>
+  
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Form</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group" hidden>
+                            <label class="col-form-label">ID</label>
+                            <div>
+                                <input name="id" id="id" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">NAME</label>
+                            <div>
+                                <input name="name" id="name" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="submit()">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    let baseUrl ="http://localhost:8088/api/";
+    let table = null
+
+    $(document).ready(function () {
+        table = $("#myTable").DataTable({
+            "ajax": {
+                "url": baseUrl + "region",
+                "type": "GET",
+                "dataSrc": "results" //diambil dari customeresponse
+            },
+            "columnDefs":[
+                {
+                    "targets": 0, //no urut
+                    "searchable": false
+                },
+                {
+                    "targets": 1, //id tidak terlihat
+                    "visible": false
+                },
+                {
+                    "targets": 3, //action tidak boleh order
+                    "orderable": false
+                } //COLUMN ACTION GA BOLEH DI ORDER
+            ],
+            "columns": [
+                {
+                    //no urut
+                    "data": null,
+                    "name": "no",
+                    "autoWidth": true,
+                    "render": function (data, type, row, meta) {
+                        return meta.row +  meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {"data": "id", "name": "id", "autoWidth": true},
+                {"data": "name", "name": "name", "autoWidth": true},
+                {
+                    "render": function (data, type, full, meta) {
+                        return '<a class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="edit('+full.id+')">EDIT</a> | <button type="submit" class="btn btn-danger" onclick="deleteRegion('+full.id+')">DELETE</button>' 
+                    }
+                }
+            ]
+        });
+    });
+    
+    let submit = () => {
+        let data = {
+            id: $("#id").val(),
+            name: $("#name").val()
+        }
+
+        $.ajax({
+            "url": baseUrl + "region",
+            "type": "POST",
+            "data": JSON.stringify(data),
+            "contentType": "application/json"
+        }).done((response) => {
+            if(response.statusCode === "OK") {
+                //NUTUP DIALOG MODAL
+                $('#exampleModal').modal('hide');
+                //RELOAD AJAX DATATABLE
+                table.ajax.reload();
+                $('#name').val('');
+            }
+        }).fail((error) => {
+            console.log(error);
+        })
+    };
+    
+    let deleteRegion = (id) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    "url": baseUrl + "region/" + id,
+                    "type": "DELETE",
+                    "contentType": "application/json"
+                }).done((response) => {
+                    Swal.fire(
+                    'Deleted!',
+                    'Your file has been deleted.',
+                    'success'
+                )
+                table.ajax.reload();
+                }).fail((error) => {
+                    console.log(error);
+                })
+            }
+        })
+    };
+
+    let edit = (id) => {
+        $.ajax({
+            "url": baseUrl + "region/" + id,
+            "type": "GET",
+            "contentType": "application/json"
+        }).done((response) => {
+            if(response.statusCode === "OK") {
+                let region = response.results
+                
+                $('#id').val(region.id);
+                $('#name').val(region.name);
+            }
+        }).fail((error) => {
+            console.log(error);
+        })
+    }
+</script>
 </html>

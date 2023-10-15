@@ -63,7 +63,7 @@ public class RegionRestController {
         if(result) {
             return CustomeResponse.generate(HttpStatus.OK, "data berhasil disimpan");
         }
-        return CustomeResponse.generate(HttpStatus.BAD_REQUEST, "data tida berhasil disimpan");
+        return CustomeResponse.generate(HttpStatus.BAD_REQUEST, "data tidak berhasil disimpan");
     }
 
     // @PostMapping(value= {"region", "region/{id}"})
@@ -99,7 +99,7 @@ public class RegionRestController {
     }
 
     //delete
-    @DeleteMapping("delete/{id}")
+    @DeleteMapping("region/{id}")
     public ResponseEntity<Object> delete(@PathVariable(required = true) Integer id) {
         Boolean result = regionRepository.findById(id).isPresent();
         if(result) {
